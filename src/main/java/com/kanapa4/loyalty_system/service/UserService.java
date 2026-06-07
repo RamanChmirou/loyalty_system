@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,17 +24,16 @@ public class UserService {
     private final MembershipRepository membershipRepository;
     private final UserMapper userMapper;
 
-    @Transactional
-    public UserDto createUser(CreateUserCommand command) {
-        if (userRepository.findByEmail(command.getEmail()).isPresent()) {
+    public UserDto createUser(CreateUserCommand dto) {
+        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new UserAlreadyExistsException("User already exists");
         }
 
-        User user = userMapper.toEntity(command);
+        User user = userMapper.toEntity(dto);
         User savedUser = userRepository.save(user);
 
-        if (command.getInitialProgramId() != null) {
-            LoyaltyProgram program = loyaltyProgramRepository.findById(command.getInitialProgramId())
+        if (dto.getInitialProgramId() != null) {
+            LoyaltyProgram program = loyaltyProgramRepository.findById(dto.getInitialProgramId())
                     .orElseThrow(() -> new ProgramNotFoundException("Program not found"));
 
             Membership membership = Membership.builder()
@@ -49,32 +47,30 @@ public class UserService {
         return userMapper.toDto(userRepository.findById(savedUser.getId()).orElseThrow());
     }
 
-    @Transactional(readOnly = true)
     public UserDto getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
         return userMapper.toDto(user);
     }
 
-    @Transactional(readOnly = true)
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(userMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional
-    public UserDto updateUser(Long id, CreateUserCommand command) {
+    public UserDto updateUser(Long id, CreateUserCommand dto) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if (!user.getEmail().equals(command.getEmail()) && userRepository.findByEmail(command.getEmail()).isPresent()) {
+        if (!user.getEmail().equals(dto.getEmail()) && userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new UserAlreadyExistsException("User already exists");
         }
 
-        user.setFirstName(command.getFirstName());
-        user.setLastName(command.getLastName());
-        user.setEmail(command.getEmail());
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setEmail(dto.getEmail());
 
         return userMapper.toDto(userRepository.save(user));
     }
