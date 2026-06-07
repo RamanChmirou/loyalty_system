@@ -18,8 +18,8 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto createUser(@Valid @RequestBody CreateUserCommand command) {
-        return userService.createUser(command);
+    public UserDto createUser(@Valid @RequestBody CreateUserCommand dto) {
+        return userService.createUser(dto);
     }
 
     @GetMapping

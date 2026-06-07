@@ -24,6 +24,7 @@ public class UserService {
     private final MembershipRepository membershipRepository;
     private final UserMapper userMapper;
 
+    @Transactional
     public UserDto createUser(CreateUserCommand dto) {
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new UserAlreadyExistsException("User already exists");
